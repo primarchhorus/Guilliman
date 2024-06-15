@@ -1,0 +1,31 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "JobSystem",
+            "displayName": "Clang 14.0.6 arm64-apple-darwin23.3.0",
+            "description": "Using compilers: C = /opt/homebrew/opt/llvm@14/bin/clang, CXX = /opt/homebrew/opt/llvm@14/bin/clang++",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm@14/bin/clang",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@14/bin/clang++",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "Testing",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "JobSystem"
+        },
+        {
+            "name": "JTesting",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "JobSystem"
+        }
+    ]
+}
