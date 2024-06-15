@@ -37,11 +37,10 @@ void job_system::worker() {
     std::cout << "worker starting" << std::endl;
     while (true) {
         job j;
-        for (size_t i = 0; i < PROCESSORCOUNT; i++) {
+        for (size_t i = 0; i != PROCESSORCOUNT; i++) {
             if (worker_queues[((index + i) % PROCESSORCOUNT)].try_pop_entity(j)) {
                 break;
             }
-
         }
         if (!worker_queues[((index) % PROCESSORCOUNT)].pop_entity(j)) {
                 break;
@@ -49,6 +48,9 @@ void job_system::worker() {
         }
         if (j.action) {
             j.action(); 
+        }
+        else {
+            std::cout << "why is the action bad" << std::endl;
         }
         
         // 

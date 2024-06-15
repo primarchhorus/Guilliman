@@ -10,10 +10,9 @@
 
 // #include "common.h"
 
-const uint32_t PENDINGJOBSNUMBER = 1024;
+const uint32_t PENDINGJOBSNUMBER = 2048;
 const uint32_t JOBPOOLSIZE = 256;
 const auto PROCESSORCOUNT = std::thread::hardware_concurrency();
-// const auto PROCESSORCOUNT = 2;
 
 enum class job_state {
     PENDING,

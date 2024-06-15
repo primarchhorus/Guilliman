@@ -38,92 +38,57 @@ struct circular_buffer
 
     bool try_push_entity(T entity)
     {
-        if (full) {
-            return false;
-        }
-
         std::unique_lock<std::mutex> lock{buffer_lock, std::try_to_lock};
         if (!lock.owns_lock()) {
             return false;
         }
-        buffer[head] = entity;
-        if (full)
+        buffer[head] = std::move(entity);
+        if(full)
         {
-            if (++(tail) == buffer_size)
-            {
-                tail = 0;
-            }
+            tail = (tail + 1) % buffer_size;
         }
 
-        if (++(head) == buffer_size)
-        {
-            head = 0;
-        }
-        full = (head == tail);
+        head = (head + 1) % buffer_size;
+
+        full = head == tail;
         ready.notify_one();
         return true;
     }
 
     bool try_pop_entity(T &out_entity)
     {
-
         std::unique_lock<std::mutex> lock{buffer_lock, std::try_to_lock};
         if (empty() || !lock.owns_lock()) {
             return false;
         }
-        full = (++(tail) == buffer_size);
-        if (!full)
-        {
-            out_entity = buffer[tail];
-        }
-        else
-        {
-            tail = 0;
-        }
+        out_entity = std::move(buffer[tail]);
+        full = false;
+	    tail = (tail + 1) % buffer_size;
         return true;
     }
 
     void push_entity(T entity)
     {
         std::unique_lock<std::mutex> lock(buffer_lock);
-        buffer[head] = entity;
-        if (full)
+        
+        buffer[head] = std::move(entity);
+        if(full)
         {
-            if (++(tail) == buffer_size)
-            {
-                tail = 0;
-            }
+            tail = (tail + 1) % buffer_size;
         }
 
-        if (++(head) == buffer_size)
-        {
-            head = 0;
-        }
-        full = (head == tail);
-        ready.notify_one();
+        head = (head + 1) % buffer_size;
+
+        full = head == tail;
     }
 
     bool pop_entity(T &out_entity)
     {
         std::unique_lock<std::mutex> lock(buffer_lock);
         ready.wait(lock, [&]() { return !empty(); });
-        // while ( && !finished) {
-        //     std::cout << "waiting" << std::endl;
-        //     ready.wait(lock);
-        // }
-        if (empty()) {
-            return false;
-        }
-        full = (++(tail) == buffer_size);
-        if (!full)
-        {
-            out_entity = buffer[tail];
-        }
-        else
-        {
-            tail = 0;
-        }
-        ready.notify_one();
+        out_entity = std::move(buffer[tail]);
+        full = false;
+	    tail = (tail + 1) % buffer_size;
         return true;
     }
 
