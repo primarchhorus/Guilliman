@@ -31,6 +31,8 @@ struct job_system {
 
     job_system();
     ~job_system();
+    job_system(const job_system &) = delete;
+    job_system &operator=(const job_system &) = delete;
 
     void initialize();
     void submit_job(const job& new_job);

@@ -42,15 +42,12 @@ void job_system::worker() {
                 break;
             }
         }
-        if (!worker_queues[((index) % PROCESSORCOUNT)].pop_entity(j)) {
+        if (!j.action && !worker_queues[((index) % PROCESSORCOUNT)].pop_entity(j)) {
                 break;
                 
         }
         if (j.action) {
             j.action(); 
-        }
-        else {
-            std::cout << "why is the action bad" << std::endl;
         }
         
         // 

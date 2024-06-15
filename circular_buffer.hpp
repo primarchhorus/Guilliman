@@ -39,56 +39,55 @@ struct circular_buffer
     bool try_push_entity(T entity)
     {
         std::unique_lock<std::mutex> lock{buffer_lock, std::try_to_lock};
-        if (!lock.owns_lock()) {
+        if (full || !lock) {
             return false;
         }
-        buffer[head] = std::move(entity);
         if(full)
         {
             tail = (tail + 1) % buffer_size;
         }
-
         head = (head + 1) % buffer_size;
-
         full = head == tail;
+        buffer[head] = entity;
         ready.notify_one();
         return true;
     }
 
     bool try_pop_entity(T &out_entity)
-    {
+    {   
         std::unique_lock<std::mutex> lock{buffer_lock, std::try_to_lock};
-        if (empty() || !lock.owns_lock()) {
+        if (empty() || !lock) {
             return false;
         }
-        out_entity = std::move(buffer[tail]);
+        
         full = false;
 	    tail = (tail + 1) % buffer_size;
+        out_entity = buffer[tail];
         return true;
     }
 
     void push_entity(T entity)
     {
         std::unique_lock<std::mutex> lock(buffer_lock);
-        
-        buffer[head] = std::move(entity);
+
         if(full)
         {
             tail = (tail + 1) % buffer_size;
         }
-
         head = (head + 1) % buffer_size;
-
         full = head == tail;
+        buffer[head] = entity;
+        ready.notify_one();
     }
 
     bool pop_entity(T &out_entity)
     {
         std::unique_lock<std::mutex> lock(buffer_lock);
         ready.wait(lock, [&]() { return !empty(); });
-        out_entity = std::move(buffer[tail]);
+        
         full = false;
 	    tail = (tail + 1) % buffer_size;
+        out_entity = buffer[tail];
         return true;
     }
 
@@ -104,7 +103,7 @@ struct circular_buffer
     }
 
     T buffer[size];
-    std::mutex buffer_lock;
+    mutable std::mutex buffer_lock;
     std::condition_variable ready;
     uint32_t buffer_size{size};
     uint32_t tail{0};
